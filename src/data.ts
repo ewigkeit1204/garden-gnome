@@ -70,7 +70,7 @@ export const MUTATION_CONFIGS: Record<string, MutationConfig> = {
   "Green yeast digestives": { parents: ["greenRot"], layout: "fullGarden" },
   "Wheat slims": { parents: ["bakerWheat"], layout: "fullGarden" },
   "Fern tea": { parents: ["drowsyfern"], layout: "fullGarden" },
-  "Ichor syrup": { parents: ["ichorpuff"], layout: "fullGarden" },
+  "Ichor syrup": { parents: ["ichorpuff"], layout: "ichorpuffSparse" },
 };
 
 // Put in a subjective order for usefulness, starting with Drops -> Lumps -> CPS
@@ -596,6 +596,96 @@ export const LAYOUTS: LayoutRegistry = {
       { x: 3, y: 5, parent: 0 },
       { x: 4, y: 5, parent: 0 },
       { x: 5, y: 5, parent: 0 },
+    ],
+  },
+  // Sparse layout for Ichorpuff farming.
+  // Ichorpuff slows aging of king-adjacent plants by 50% multiplicatively
+  // (minigameGarden.js: ageMult=0.5, range=1, applied unconditionally because the
+  // stage-scaling branch only fires for ageMult>=1). Filling the plot causes
+  // interior tiles to crawl at ~0.5^8 ≈ 0.4% normal speed, so harvest throughput
+  // collapses. Ichor syrup drops only on harvest of a mature plant (0.5%/harvest),
+  // so the goal is max harvests per tick. Optimum is the max independent set on
+  // the king graph: ceil(cols/2)*ceil(rows/2) ichorpuffs with no king-neighbors.
+  ichorpuffSparse: {
+    // 2x2 — 1 cell
+    1: [{ x: 0, y: 0 }],
+    // 3x2 — 2 cells
+    2: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+    ],
+    // 3x3 — 4 cells
+    3: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+    ],
+    // 4x3 — 4 cells
+    4: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+    ],
+    // 4x4 — 4 cells
+    5: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+    ],
+    // 5x4 — 6 cells
+    6: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 4, y: 0 },
+
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+      { x: 4, y: 2 },
+    ],
+    // 5x5 — 9 cells
+    7: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 4, y: 0 },
+
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+      { x: 4, y: 2 },
+
+      { x: 0, y: 4 },
+      { x: 2, y: 4 },
+      { x: 4, y: 4 },
+    ],
+    // 6x5 — 9 cells
+    8: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 4, y: 0 },
+
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+      { x: 4, y: 2 },
+
+      { x: 0, y: 4 },
+      { x: 2, y: 4 },
+      { x: 4, y: 4 },
+    ],
+    // 6x6 — 9 cells
+    9: [
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 4, y: 0 },
+
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+      { x: 4, y: 2 },
+
+      { x: 0, y: 4 },
+      { x: 2, y: 4 },
+      { x: 4, y: 4 },
     ],
   },
   shriekbulb: {

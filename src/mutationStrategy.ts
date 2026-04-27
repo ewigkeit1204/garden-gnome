@@ -175,15 +175,15 @@ export const isUpgradeTarget = (target: string): boolean =>
   GARDEN_UPGRADES.includes(target);
 
 /**
- * Checks if the mutation strategy for a given target involves harvesting
- * a full garden layout simultaneously (e.g., Spore drops or Garden Upgrades).
- * For these targets, waiting for the garden plot to sync after harvest
- * can slow down the process, so replanting should happen immediately.
+ * Checks if the strategy for a given target should replant immediately after
+ * harvest without waiting for the plot to sync. True for any garden upgrade
+ * target (drops are per-harvest, so throughput is what matters) and for
+ * Crumbspore/Brown Mold (fullGarden meddleweed mutation farming).
  * @param target - The key (string identifier) of the target plant.
- * @returns `true` if the target uses a "fullGarden" layout strategy, `false` otherwise.
+ * @returns `true` if the target should be replanted as fast as possible.
  */
 export const isRollingTarget = (target: string): boolean => {
+  if (isUpgradeTarget(target)) return true;
   const config = MUTATION_CONFIGS[target];
-  // Check if the config exists and its layout property is specifically "fullGarden"
   return !!config && config.layout === "fullGarden";
 };
