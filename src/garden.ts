@@ -96,13 +96,14 @@ export const optimizeSoil = (
     // Check Ichorpuff slows down aging -- keep fertilizer to move as fast as possible
     const hasAgeSlowingPlants = parents.includes("ichorpuff"); // Example check, adjust based on actual plant data structure
 
-    // If no age-slowing plant is present and either the plant is an upgrade target
-    // or it takes more than 0 ticks to mature (and doesn't have fast maturing parents),
-    // use fertilizer. Otherwise, we're attempting a mutation so use woodchips.
+    // Use fertilizer when an age-slowing plant is involved (counteract the slowdown),
+    // or the plant is an upgrade target, or it takes more than 0 ticks to mature
+    // (and doesn't have fast maturing parents). Otherwise, we're attempting a
+    // mutation so use woodchips.
     const targetSoil =
-      !hasAgeSlowingPlants &&
-      (isUpgradeTarget(target) ||
-        (ticksToLayoutMaturity > 0 && !hasFastMaturingParents))
+      hasAgeSlowingPlants ||
+      isUpgradeTarget(target) ||
+      (ticksToLayoutMaturity > 0 && !hasFastMaturingParents)
         ? fertilizer
         : woodChips;
 
