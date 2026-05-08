@@ -56,20 +56,38 @@ const sortUnlockables = (a: string, b: string) => {
 };
 
 /**
+ * Returns true if every parent listed in the target's mutation config is an
+ * unlocked plant. Targets without a config (or without parents) return false.
+ * Used to gate both seed and upgrade targets — pursuing a target whose parent
+ * plant is locked is wasted effort because the parent can't actually be
+ * planted in the layout.
+ */
+const parentsUnlocked = (key: string): boolean => {
+  const config = MUTATION_CONFIGS[key];
+  if (!config?.parents) return false;
+  return config.parents.every((p) => minigame.plants[p]?.unlocked);
+};
+
+/**
  * Analyzes the current state of the garden to determine seed and upgrade statuses.
  * It categorizes seeds based on whether they are unlocked, currently growing but locked,
  * potentially unlockable (parents unlocked), or not yet unlockable (parents locked).
  * It also lists garden upgrades that haven't been unlocked yet.
  * @returns An object containing lists of seeds and upgrades based on their status:
- *  - `unlockableUpgrades`: Garden upgrades not yet unlocked (dropp).
+ *  - `unlockableUpgrades`: Garden upgrades not yet unlocked whose parent plant is unlocked (so the layout can actually be planted).
  *  - `unlockedSeeds`: Seeds already unlocked.
  *  - `growingLockedSeeds`: Seeds currently planted in the garden but not yet unlocked.
  *  - `unlockableSeeds`: Seeds not yet unlocked, but whose parent plants are unlocked, sorted by priority.
  *  - `notUnlockableSeeds`: Seeds not yet unlocked, and whose parent plants are not yet unlocked.
  */
 export const getSeedStatus = () => {
+  // An upgrade drops only when its parent plant is harvested mature, so an
+  // upgrade whose parent is still locked is unattainable. Excluding these
+  // prevents `getCurrentTarget` from falling back to e.g. "Duketater cookies"
+  // (parent: duketater) and trying to plant a locked seed across the plot
+  // when there are simply no unlockable seeds left for this tick.
   const unlockableUpgrades = GARDEN_UPGRADES.filter(
-    (u) => !Game.HasUnlocked(u)
+    (u) => !Game.HasUnlocked(u) && parentsUnlocked(u)
   );
 
   const unlockedSeeds = minigame.plantsById
@@ -89,19 +107,15 @@ export const getSeedStatus = () => {
     ),
   ];
 
-  const parentsUnlocked = (plant: GamePlant): boolean => {
-    const config = MUTATION_CONFIGS[plant.key];
-    if (!config?.parents) return false;
-    return config.parents.every((p) => minigame.plants[p]?.unlocked);
-  };
-
   const unlockableSeeds: string[] = [];
   const notUnlockableSeeds: string[] = [];
 
   minigame.plantsById
     .filter((p) => !p.unlocked && !growingLockedSeeds.includes(p.key))
     .forEach((p) => {
-      (parentsUnlocked(p) ? unlockableSeeds : notUnlockableSeeds).push(p.key);
+      (parentsUnlocked(p.key) ? unlockableSeeds : notUnlockableSeeds).push(
+        p.key
+      );
     });
 
   // Sort using configured sort preferences
